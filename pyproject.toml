@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pfrpn"
+version = "0.2.0"
+description = "PF-RPN (Prompt-Free Universal Region Proposal Network) 精简复现版，CPU 可跑"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+    "scipy",
+    "pillow",
+    "opencv-python-headless; platform_system != 'Windows'",
+    "opencv-python-headless; platform_system == 'Windows'",
+]
+
+[project.optional-dependencies]
+headless = ["opencv-python-headless"]
+
+[project.scripts]
+pfrpn = "pfrpn.api:main"
+
+[tool.setuptools.packages.find]
+# tools/ 没有 __init__.py（隐式命名空间包），所以要开 namespaces。
+include = ["pfrpn*", "tools"]
+namespaces = true
+
+[tool.setuptools.package-data]
+pfrpn = ["*.pyi"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

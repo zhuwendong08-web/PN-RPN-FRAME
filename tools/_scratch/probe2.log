@@ -1,0 +1,9 @@
+开始跑，最多 400 步
+
+[step 333] 出问题：
+   images_ok=True gts_ok=True out_ok=True
+   bad_loss=[]
+   grad_norm=nan
+   第一个非有限梯度参数: ['embed_token', 'backbone.stages.0.block.0.weight', 'backbone.stages.0.block.1.weight', 'backbone.stages.0.block.1.bias', 'backbone.stages.0.block.3.weight']
+   已非有限的参数: []
+跑完，全程没触发。

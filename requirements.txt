@@ -1,0 +1,15 @@
+# 实测组合：Python 3.13 + Windows CPU 全部通过
+# 安装（CPU 版 torch，约 200 MB）：
+#   pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0
+torchvision==0.29.0
+numpy>=2.0
+scipy>=1.11
+pillow>=10.0
+
+# 视频读写（tools/video_demo.py、pfrpn.api.PF.predict_video 需要）
+# 不装也能跑图片推理，只有读/写 mp4 会报错退出
+opencv-python-headless
+
+# 可选：CUDA 机器上想跑 GPU 版时换掉上面两行即可
+# torch torchvision --index-url https://download.pytorch.org/whl/cu121

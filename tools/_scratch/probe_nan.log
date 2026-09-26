@@ -1,0 +1,112 @@
+开始跑，最多 400 步
+D:\WorkBuddy\PN-RPN框架\tools\_scratch\probe_nan.py:58: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  f"min={float(t.min()):.4g} max={float(t.max()):.4g}")
+  !! 非有限输出 backbone.stages.0.block.0.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.1.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.2.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.3.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.4.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.5.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.block.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.0.out: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.0.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.1.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.2.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.3.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.4.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.5.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.block.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.1.out: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.0.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.1.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.2.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.3.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.4.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.5.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.block.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.2.out: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.0.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.1.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.2.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.3.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.4.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.5.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.block.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.stages.3.out: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.o0: nan=200704 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.o1: nan=100352 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.o2: nan=50176 inf=0 min=nan max=nan
+  !! 非有限输出 backbone.o3: nan=25088 inf=0 min=nan max=nan
+  !! 非有限输出 level_proj.0.out: nan=1204224 inf=0 min=nan max=nan
+  !! 非有限输出 level_proj.1.out: nan=301056 inf=0 min=nan max=nan
+  !! 非有限输出 level_proj.2.out: nan=75264 inf=0 min=nan max=nan
+  !! 非有限输出 level_proj.3.out: nan=18816 inf=0 min=nan max=nan
+  !! 非有限输出 sia.router.0.out: nan=192 inf=0 min=nan max=nan
+  !! 非有限输出 sia.router.1.out: nan=192 inf=0 min=nan max=nan
+  !! 非有限输出 sia.router.2.out: nan=8 inf=0 min=nan max=nan
+  !! 非有限输出 sia.router.out: nan=8 inf=0 min=nan max=nan
+  !! 非有限输出 sia.kv_proj.out: nan=602304 inf=0 min=nan max=nan
+  !! 非有限输出 sia.dropout.out: nan=384 inf=0 min=nan max=nan
+  !! 非有限输出 sia.out_proj.out: nan=384 inf=0 min=nan max=nan
+  !! 非有限输出 sia.o0: nan=384 inf=0 min=nan max=nan
+  !! 非有限输出 csp.o0: nan=384 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.self_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.dropout.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.norm1.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.pos_proj.out: nan=1599360 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.cross_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.norm2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.linear1.out: nan=76800 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.linear2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.norm3.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.0.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.self_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.dropout.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.norm1.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.pos_proj.out: nan=1599360 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.cross_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.norm2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.linear1.out: nan=76800 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.linear2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.norm3.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.1.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.self_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.dropout.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.norm1.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.pos_proj.out: nan=1599360 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.cross_attn.o0: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.norm2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.linear1.out: nan=76800 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.linear2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.norm3.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.layers.2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.norm.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 decoder.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.0.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.1.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.2.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.3.out: nan=38400 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.4.out: nan=800 inf=0 min=nan max=nan
+  !! 非有限输出 reg_head.out: nan=800 inf=0 min=nan max=nan
+  !! 非有限输出 cgqs.net.0.out: nan=51200 inf=0 min=nan max=nan
+  !! 非有限输出 cgqs.net.1.out: nan=51200 inf=0 min=nan max=nan
+  !! 非有限输出 cgqs.net.2.out: nan=200 inf=0 min=nan max=nan
+  !! 非有限输出 cgqs.net.out: nan=200 inf=0 min=nan max=nan
+  !! 非有限输出 cgqs.out: nan=200 inf=0 min=nan max=nan
+Traceback (most recent call last):
+  File "D:\WorkBuddy\PN-RPN框架\tools\_scratch\probe_nan.py", line 83, in <module>
+    losses = loss_fn(out["boxes"], out["cls_logits"], out["ctr"],
+                     out["router_w"], gts, batch.get("gt_mask"))
+  File "C:\Users\Lenovo\.workbuddy\binaries\python\envs\pn-rpn\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Lenovo\.workbuddy\binaries\python\envs\pn-rpn\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "D:\WorkBuddy\PN-RPN框架\pfrpn\losses.py", line 118, in forward
+    rows, cols = hungarian_match(cost)
+                 ~~~~~~~~~~~~~~~^^^^^^
+  File "D:\WorkBuddy\PN-RPN框架\pfrpn\utils\box.py", line 133, in hungarian_match
+    r, c = linear_sum_assignment(cost.detach().cpu().numpy().T)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: matrix contains invalid numeric entries
