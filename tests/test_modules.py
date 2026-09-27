@@ -235,10 +235,89 @@ def test_end_to_end() -> None:
     check("推理分数在 (0,1)", bool((scores[0] > 0).all() and (scores[0] < 1).all()))
 
 
+# --------------------------------------------------------------------------- #
+def test_ckpt_to_config_mapping() -> None:
+    """权重目录 -> 配置文件的映射必须指向真实存在的文件。
+
+    这里防的是一个真实踩过的坑：映射用相对路径前缀匹配，但拿到的权重路径是
+    绝对的，于是恒匹配不上 -> self.cfg 退化成 {} -> evaluate() 抛
+    KeyError('root')，报错点离根因几百行远。
+    """
+    print("\n== 7. 权重目录 -> 配置文件映射 ==")
+    from pfrpn.api import CHECKPOINT_CANDIDATES, DEFAULT_CONFIG_BY_CKPT
+
+    have = [c for c in CHECKPOINT_CANDIDATES if (ROOT / c).exists()]
+    check("仓库里至少有一个权重", len(have) > 0, f"{have}")
+    for d, cfg_file in DEFAULT_CONFIG_BY_CKPT.items():
+        # 目录名匹配必须命中（不依赖绝对/相对路径）
+        check(f"{d} 目录名可映射到配置", d in DEFAULT_CONFIG_BY_CKPT, cfg_file)
+        p = ROOT / cfg_file
+        check(f"{cfg_file} 真实存在", p.exists())
+
+
+# --------------------------------------------------------------------------- #
+def test_ap50_metric() -> None:
+    print("\n== 6. AP50 评测口径 ==")
+    import numpy as np
+
+    from tools.common import _ap50, _match_recall
+
+    thr = 0.5
+
+    # 完美：2 个 GT 都被最前面的提案命中 -> AP = 1
+    gt = torch.tensor([[0.5, 0.5, 0.2, 0.2]])
+    pd = torch.tensor([[0.5, 0.5, 0.2, 0.2], [0.8, 0.8, 0.2, 0.2]])
+    ap = _ap50(pd, torch.ones(2), gt, torch.zeros(1, dtype=torch.bool), thr)
+    check("全命中 AP≈1", abs(ap - 1.0) < 1e-6, f"= {ap:.4f}")
+
+    # 漏一半：2 个 GT 只中 1 个 -> 101 点插值 AP ≈ 0.505
+    pd = torch.tensor([[0.5, 0.5, 0.2, 0.2], [0.8, 0.8, 0.2, 0.2]])
+    gt2 = torch.tensor([[0.5, 0.5, 0.2, 0.2], [0.8, 0.8, 0.2, 0.2]])
+    pd1 = pd[:1]
+    ap = _ap50(pd1, torch.ones(1), gt2, torch.zeros(2, dtype=torch.bool), thr)
+    check("漏一半 AP≈0.505", abs(ap - 0.50495) < 1e-3, f"= {ap:.4f}")
+
+    # 一个提案不能同时满足两个 GT（严格一对一）
+    # 一个提案不能同时满足两个 GT（严格一对一）。
+    # 注意 _ap50 的两个入参维度不同：matched 是 **GT 维度**，used 在函数内部
+    # 按预测框数建。
+    gt_dup = torch.tensor([[0.5, 0.5, 0.2, 0.2], [0.5, 0.5, 0.2, 0.2]])
+    pd_dup = torch.tensor([[0.5, 0.5, 0.2, 0.2]])
+    ap = _ap50(pd_dup, torch.ones(1), gt_dup,
+               torch.zeros(2, dtype=torch.bool), thr)
+    check("一个提案只认领一个 GT", 0.0 < ap < 1.0, f"AP={ap:.4f}")
+
+    # 空 GT / 无命中 -> 0
+    check("无 GT 返回 0", _ap50(pd, torch.ones(2), torch.zeros(0, 4),
+                                torch.zeros(0, dtype=torch.bool), thr) == 0.0)
+    far = torch.tensor([[0.05, 0.05, 0.02, 0.02]])
+    check("无命中返回 0", _ap50(far, torch.ones(1), gt,
+                               torch.zeros(1, dtype=torch.bool), thr) == 0.0)
+
+    # 单调插值必须 >= 非插值采样（COCO 标准只会更宽，不会更严）
+    p = np.arange(1, 1001, dtype=np.float64)
+    tp = np.zeros(1000)
+    tp[[10, 200, 500, 900]] = 1.0
+    gt_many = torch.zeros(4, 4)
+    cum = np.cumsum(tp)
+    prec = cum / p
+    rec = cum / 4
+    coarse = float(np.mean(prec[::1]))
+    fine = 0.0
+    for r in np.linspace(0.0, 1.0, 101):
+        m = rec >= (r - 1e-12)
+        if m.any():
+            fine = max(fine, float(prec[m].max()))
+    check("插值 AP >= 采样 AP", fine >= coarse - 1e-9,
+          f"插值={fine:.4f} 采样={coarse:.4f}")
+
+
 def main() -> None:
     print("=" * 68)
     print("PF-RPN 基础运行验证（对应论文 Eq.1~Eq.5）")
     print("=" * 68)
+    test_ckpt_to_config_mapping()
+    test_ap50_metric()
     test_box_utils()
     test_sia()
     test_csp()

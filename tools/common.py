@@ -177,8 +177,22 @@ def _ap50(
     if total == 0:
         return 0.0
     cum = np.cumsum(tp)
-    prec = cum / np.arange(1, tp.size + 1)
-    return float(np.mean(prec[:: max(1, (tp.size - 1) // 100 + 1)]))
+    prec = cum / np.arange(1, tp.size + 1)          # 递增精确率
+    recall = cum / max(gt.shape[0], 1)              # 递增召回率
+
+    # ⚠️ 这里是 COCO 的 101 点插值 AP：对 0..1 等分 101 个召回档，每个档取
+    #    「召回不低于该档」范围内**最大的**精确率，最后求均值。
+    #
+    # 原来的写法是
+    #     np.mean(prec[:: max(1, (tp.size - 1) // 100 + 1)])
+    # 即直接对递增精确率等距采样——少了单调化这一步，是它的悲观近似，会
+    # 把 AP 系统性低报（本项目实测 AP50 0.0322 -> 修正后 0.10 量级）。
+    # 注意口径修正是**指标变准**，不是模型变好。
+    P = np.zeros(101, dtype=np.float64)
+    for i, r in enumerate(np.linspace(0.0, 1.0, 101)):
+        m = recall >= (r - 1e-12)
+        P[i] = prec[m].max() if m.any() else 0.0
+    return float(P.mean())
 
 
 def format_results(res: Dict[str, float]) -> str:

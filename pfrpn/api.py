@@ -103,6 +103,11 @@ DEFAULT_CONFIG_BY_CKPT = {
     "outputs_person": "configs/pf_rpn_person.py",
 }
 
+#: 权重目录不在上表里时的兜底配置（合成数据上的通用超参）。没有它，
+#: ``PF(checkpoint='outputs/best.pth')`` 的 self.cfg 会退化成 {}，
+#: evaluate() / train() 全都用不了。
+DEFAULT_CONFIG = "configs/pf_rpn_tiny.py"
+
 
 def list_checkpoints(root: Optional[Path] = None) -> List[str]:
     """列出仓库里能找到的权重，标出各自是哪个用途。"""
@@ -180,6 +185,15 @@ class PF:
         sys.path.insert(0, str(_repo_root()))
         from tools.common import load_config, resolve_device, set_seed
 
+        # ⚠️ 这里踩过一个很难发现的坑：原先写的是
+        #       ckpt_path.as_posix().startswith(key + "/")
+        # 但 _resolve_checkpoint 返回的是**绝对路径**（"D:/.../outputs_person_v4/best.pth"），
+        # 相对前缀永远匹配不上，key 恒为 None -> cfg_path 恒为 None -> self.cfg 恒为 {}。
+        # 后果是 evaluate() 在几百行之外抛一个毫无提示的 KeyError('root')。
+        # 改成按**权重所在目录名**匹配，绝对路径和相对路径都成立。
+        if cfg_path is None:
+            cfg_path = DEFAULT_CONFIG_BY_CKPT.get(
+                ckpt_path.parent.name, DEFAULT_CONFIG)
         self.cfg_path = cfg_path
         self.cfg = load_config(cfg_path) if cfg_path else {}
         self.device = resolve_device(device or self.cfg.get("device", "auto"))
@@ -408,7 +422,18 @@ class PF:
         from pfrpn.datasets import COCOLikeDataset, collate
         from tools.common import evaluate_proposals, format_results
 
-        dcfg = self.cfg.get("data", {})
+        dcfg = self.cfg.get("data")
+        # 别再让 KeyError('root') 这种看不懂的错误蹦出来（曾经因为权重目录名
+        # 匹配不上配置文件，self.cfg 退化成 {}，报错点离根因几百行远）。
+        if not dcfg or "root" not in dcfg:
+            raise RuntimeError(
+                "拿不到数据配置（self.cfg_path="
+                f"{self.cfg_path!r}，self.cfg keys={sorted(self.cfg.keys())}）。\n"
+                "大概率是权重目录名没在 DEFAULT_CONFIG_BY_CKPT 里，或对应的 "
+                f"configs/*.py 不存在。已注册的映射：\n  "
+                + "\n  ".join(f"{k} -> {v}" for k, v in DEFAULT_CONFIG_BY_CKPT.items())
+                + "\n显式指定配置可绕过：PF(checkpoint=..., config='configs/pf_rpn_tiny.py')"
+            )
         ds = COCOLikeDataset(
             root=dcfg["root"], split=split, img_size=dcfg["img_size"],
             max_objs=dcfg["max_objs"], seed=self.cfg.get("seed", 0) + 7,
