@@ -20,10 +20,11 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from pfrpn import PFRPN                                    # noqa: E402
-from pfrpn.datasets import COCOLikeDataset, collate        # noqa: E402
+from pfrpn.datasets import collate                          # noqa: E402
 from pfrpn.losses import PFRPNLoss                         # noqa: E402
 from tools.common import (                                 # noqa: E402
     REPO_ROOT,
+    build_dataset,
     evaluate_proposals,
     format_results,
     load_config,
@@ -60,39 +61,13 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # ---------------- 数据 ----------------
+    # ⚠️ 数据集构建的统一入口在 tools/common.py::build_dataset。
+    # 真实数据的关键开关（json_file / img_dir / bbox_fmt / train_n / val_n）
+    # 全在配置文件里；本脚本不再自己拼参数——三处拼装的版本曾导致
+    # 评测集错配（见 common.py 里的历史教训）。
+    train_ds = build_dataset(cfg, "train", force_synth=args.force_synth)
+    val_ds = build_dataset(cfg, "val", force_synth=args.force_synth)
     dcfg = cfg["data"]
-    # 微调真实数据时关键 4 个开关（见 configs/pf_rpn_person.py）：
-    #   json_file  换掉默认的 <root>/<split>.json，否则会静默去读合成数据
-    #   img_dir    真实图按需下载在别处，不在 root/images 下
-    #   bbox_fmt   COCO 官方是 xywh_px
-    #   train_n/val_n  真实数据集很大时截断到多少张
-    train_ds = COCOLikeDataset(
-        root=dcfg["root"], split="train", img_size=dcfg["img_size"],
-        max_objs=dcfg["max_objs"], n_images=dcfg.get("n_images", 512),
-        seed=cfg.get("seed", 0), force_synth=args.force_synth,
-        img_dir=dcfg.get("img_dir"),
-        bbox_fmt=dcfg.get("bbox_fmt", "cxcywh"),
-        json_file=dcfg.get("json_file"),
-        n_images_cap=dcfg.get("train_n"),
-        id_offset=dcfg.get("train_offset", 0),
-    )
-    val_ds = COCOLikeDataset(
-        root=dcfg["root"], split="val", img_size=dcfg["img_size"],
-        max_objs=dcfg["max_objs"], n_images=dcfg.get("n_images", 512),
-        seed=cfg.get("seed", 0) + 7, force_synth=args.force_synth,
-        img_dir=dcfg.get("img_dir"),
-        bbox_fmt=dcfg.get("bbox_fmt", "cxcywh"),
-        json_file=dcfg.get("json_file"),
-        n_images_cap=dcfg.get("val_n"),
-        # ⚠️ 只有**真实数据集**才用 ``train_n`` 当偏移。COCO 那种 json 是按
-        # ``[0:train_n]`` + ``[train_n:train_n+val_n]`` 编排的，val 必须从
-        # train_n 之后切，否则训练集和验证集会重叠。
-        # 但**合成数据**（dump_synthetic_split）的 val 图 id 是独立编号的
-        # 0..val_n-1，偏移 512 会把 128 张 val 图全切没 → 数据集长度 0 →
-        # 评测静默返回 AR@100=0.0000，还会拿 epoch1 的权重覆盖 best.pth。
-        # 修法：合成数据显式写 ``val_offset: 0``；这里也把兜底收紧成 0。
-        id_offset=dcfg.get("val_offset", dcfg.get("train_n", 0) if dcfg.get("json_file") else 0),
-    )
     print(f"[data ] 训练集 {len(train_ds)} 张 / 验证集 {len(val_ds)} 张"
           + (f" (bbox_fmt={dcfg.get('bbox_fmt')}, json={dcfg.get('json_file')})"
              if dcfg.get("json_file") else " (合成数据)"))

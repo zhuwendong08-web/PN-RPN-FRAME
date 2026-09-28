@@ -39,6 +39,50 @@ def resolve_device(device: str) -> torch.device:
 
 
 # --------------------------------------------------------------------------- #
+# 数据集构建的**唯一入口**
+# --------------------------------------------------------------------------- #
+def build_dataset(cfg: dict, split: str, force_synth: bool = False):
+    """按配置建数据集，train / test / evaluate 三处都必须走这一个入口。
+
+    ⚠️ 历史教训（2026-09-27）：之前 train.py / test.py / pfrpn.api.PF.evaluate
+    各自拼装 ``COCOLikeDataset`` 参数，test.py 漏了 img_dir / json_file /
+    bbox_fmt / n_images_cap 四个参数，全部回退成默认值，把真实 COCO 人权重的
+    权重评到了合成 ``data/val.json`` 上——同一个 v4 权重 AR@100 从 0.6050
+    掉到 0.4180，差点被当成模型退化。三处合一之后这类"评错数据集"的坑
+    从根上堵住。
+
+    参数约定（与旧 train.py 完全一致，不许再改）：
+    - train: seed=cfg.seed，cap=train_n，offset=train_offset
+    - val:   seed=cfg.seed+7，cap=val_n，offset=val_offset
+             （真实 COCO 数据没写 val_offset 时回退成 train_n，
+             合成数据必须显式写 val_offset=0，理由见旧 train.py 注释）
+    """
+    from pfrpn.datasets import COCOLikeDataset
+
+    dcfg = cfg["data"]
+    is_train = split == "train"
+    if is_train:
+        cap = dcfg.get("train_n")
+        offset = dcfg.get("train_offset", 0)
+    else:
+        cap = dcfg.get("val_n")
+        offset = dcfg.get(
+            "val_offset", dcfg.get("train_n", 0) if dcfg.get("json_file") else 0
+        )
+    return COCOLikeDataset(
+        root=dcfg["root"], split=split, img_size=dcfg["img_size"],
+        max_objs=dcfg["max_objs"], n_images=dcfg.get("n_images", 512),
+        seed=cfg.get("seed", 0) if is_train else cfg.get("seed", 0) + 7,
+        force_synth=force_synth,
+        img_dir=dcfg.get("img_dir"),
+        bbox_fmt=dcfg.get("bbox_fmt", "cxcywh"),
+        json_file=dcfg.get("json_file"),
+        n_images_cap=cap,
+        id_offset=offset,
+    )
+
+
+# --------------------------------------------------------------------------- #
 # 评测：Average Recall（论文主指标）与 AP50
 # --------------------------------------------------------------------------- #
 @torch.no_grad()

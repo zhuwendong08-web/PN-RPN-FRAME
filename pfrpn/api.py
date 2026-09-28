@@ -130,6 +130,18 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def _repo_on_path() -> None:
+    """把仓库根目录加进 sys.path（幂等）。
+
+    api 作为 ``pfrpn`` 包被 import 时，兄弟包 ``tools`` 不在路径上，
+    evaluate()/train() 里的 ``from tools.common import ...`` 会失败。
+    以前在每个方法里各写一遍，现在收敛到这里。
+    """
+    root = str(_repo_root())
+    if root not in sys.path:
+        sys.path.insert(0, root)
+
+
 def _resolve_checkpoint(checkpoint: Optional[str]) -> Tuple[Path, Optional[str]]:
     """确定权重路径；没指定就按 CHECKPOINT_CANDIDATES 自动挑。返回 (路径, 提示信息)。"""
     if checkpoint:
@@ -182,7 +194,7 @@ class PF:
                         if ckpt_path.as_posix().startswith(k + "/")), None)
             cfg_path = DEFAULT_CONFIG_BY_CKPT.get(key) if key else None
 
-        sys.path.insert(0, str(_repo_root()))
+        _repo_on_path()
         from tools.common import load_config, resolve_device, set_seed
 
         # ⚠️ 这里踩过一个很难发现的坑：原先写的是
@@ -417,10 +429,10 @@ class PF:
     # ------------------------------------------------------------------ #
     def evaluate(self, split: str = "val", topk: Sequence[int] = (100,)) -> dict:
         """在验证集上算 AR@K / AP50，返回字典。"""
-        sys.path.insert(0, str(_repo_root()))
+        _repo_on_path()
         from torch.utils.data import DataLoader
-        from pfrpn.datasets import COCOLikeDataset, collate
-        from tools.common import evaluate_proposals, format_results
+        from pfrpn.datasets import collate
+        from tools.common import build_dataset, evaluate_proposals, format_results
 
         dcfg = self.cfg.get("data")
         # 别再让 KeyError('root') 这种看不懂的错误蹦出来（曾经因为权重目录名
@@ -434,11 +446,10 @@ class PF:
                 + "\n  ".join(f"{k} -> {v}" for k, v in DEFAULT_CONFIG_BY_CKPT.items())
                 + "\n显式指定配置可绕过：PF(checkpoint=..., config='configs/pf_rpn_tiny.py')"
             )
-        ds = COCOLikeDataset(
-            root=dcfg["root"], split=split, img_size=dcfg["img_size"],
-            max_objs=dcfg["max_objs"], seed=self.cfg.get("seed", 0) + 7,
-            n_images=dcfg.get("val_n", 128),
-        )
+        # ⚠️ 数据集构建统一走 tools/common.py::build_dataset，与 train.py 完全一致。
+        # 曾经这里自己拼参数、漏了 4 个，把真实 COCO 人权重的评测跑在合成
+        # data/val.json 上（AR@100 0.6050 -> 0.4180），差点当成模型退化。
+        ds = build_dataset(self.cfg, split)
         loader = DataLoader(ds, batch_size=1, shuffle=False, collate_fn=collate)
         print(f"[eval] 验证集 {len(ds)} 张")
         res = evaluate_proposals(self.model, loader, topk_list=tuple(topk),
@@ -449,7 +460,7 @@ class PF:
     def train(self, epochs: int = 4, batch_size: Optional[int] = None,
               resume: Optional[str] = None) -> None:
         """起一次训练。参数默认读配置，只覆盖 epoch / batch_size。"""
-        sys.path.insert(0, str(_repo_root()))
+        _repo_on_path()
         import subprocess
         cmd = [sys.executable,
                str(_repo_root() / "tools" / "train.py"),

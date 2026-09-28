@@ -14,9 +14,10 @@ from torch.utils.data import DataLoader
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from pfrpn.datasets import COCOLikeDataset, collate        # noqa: E402
+from pfrpn.datasets import collate                          # noqa: E402
 from pfrpn.model import PFRPN                              # noqa: E402
 from tools.common import (                                 # noqa: E402
+    build_dataset,
     evaluate_proposals,
     format_results,
     load_config,
@@ -44,12 +45,10 @@ def main() -> None:
     model.load_state_dict(ckpt["model"])
     print(f"[load] {args.checkpoint}")
 
-    dcfg = cfg["data"]
-    ds = COCOLikeDataset(
-        root=dcfg["root"], split=args.split, img_size=dcfg["img_size"],
-        max_objs=dcfg["max_objs"], seed=cfg.get("seed", 0) + 7,
-        n_images=dcfg.get("val_n", 128),
-    )
+    # ⚠️ 数据集构建统一走 tools/common.py::build_dataset，与 train.py 完全一致。
+    # 曾经这里自己拼参数、漏了 4 个，把真实 COCO 人权重的权重评到合成
+    # data/val.json 上（AR@100 0.6050 -> 0.4180），差点当成模型退化。
+    ds = build_dataset(cfg, args.split)
     loader = DataLoader(ds, batch_size=max(cfg["batch_size"], 1), shuffle=False,
                         collate_fn=collate)
     topk = tuple(int(x) for x in args.topk.split(",")) if args.topk else tuple(cfg.get("topk_list", (100,)))
